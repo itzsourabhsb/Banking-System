@@ -1,6 +1,6 @@
 import sqlite3
 
-# ---------------- DATABASE SETUP ----------------
+# DATABASE SETUP
 conn = sqlite3.connect("bank.db")
 cur = conn.cursor()
 
@@ -25,35 +25,33 @@ CREATE TABLE IF NOT EXISTS transactions (
 conn.commit()
 
 
-# ---------------- CREATE ACCOUNT ----------------
+# CREATE ACCOUNT
 def create_account():
     try:
         name = input("Enter name: ").strip()
 
         pin_input = input("Set 4-digit PIN: ").strip()
         if not pin_input.isdigit() or len(pin_input) != 4:
-            print("PIN must be exactly 4 digits")
+            print("Invalid PIN")
             return
         pin = int(pin_input)
 
-        balance_input = input("Enter initial balance: ").strip()
-        balance = float(balance_input)
-
+        balance = float(input("Enter initial balance: ").strip())
         if balance < 0:
-            print("Balance cannot be negative")
+            print("Invalid balance")
             return
 
         cur.execute("INSERT INTO accounts (name, pin, balance) VALUES (?, ?, ?)",
                     (name, pin, balance))
         conn.commit()
 
-        print("✅ Account created successfully!")
+        print("Account created successfully")
 
     except Exception as e:
-        print("❌ Error:", e)
+        print("Error:", e)
 
 
-# ---------------- LOGIN ----------------
+# LOGIN
 def login():
     try:
         acc_id = input("Enter Account ID: ").strip()
@@ -68,33 +66,33 @@ def login():
         user = cur.fetchone()
 
         if user:
-            print(f"✅ Welcome {user[1]}")
+            print("Login successful")
             return int(acc_id)
         else:
-            print("❌ Invalid credentials")
+            print("Invalid credentials")
             return None
 
     except Exception as e:
-        print("❌ Error:", e)
+        print("Error:", e)
         return None
 
 
-# ---------------- VIEW ACCOUNTS ----------------
+# VIEW ACCOUNTS
 def view_accounts():
     data = cur.execute("SELECT id, name, balance FROM accounts")
-    print("\n--- All Accounts ---")
+    print("\nAccounts:")
     for row in data:
         print(row)
 
 
-# ---------------- DEPOSIT ----------------
+# DEPOSIT
 def deposit():
     acc_id = login()
     if not acc_id:
         return
 
     try:
-        amount = float(input("Enter amount to deposit: ").strip())
+        amount = float(input("Enter amount: ").strip())
 
         if amount <= 0:
             print("Invalid amount")
@@ -107,20 +105,20 @@ def deposit():
                     (acc_id, "DEPOSIT", amount))
 
         conn.commit()
-        print("✅ Deposit successful!")
+        print("Amount deposited")
 
     except Exception as e:
-        print("❌ Error:", e)
+        print("Error:", e)
 
 
-# ---------------- WITHDRAW ----------------
+# WITHDRAW
 def withdraw():
     acc_id = login()
     if not acc_id:
         return
 
     try:
-        amount = float(input("Enter amount to withdraw: ").strip())
+        amount = float(input("Enter amount: ").strip())
 
         cur.execute("SELECT balance FROM accounts WHERE id=?", (acc_id,))
         result = cur.fetchone()
@@ -133,15 +131,15 @@ def withdraw():
                         (acc_id, "WITHDRAW", amount))
 
             conn.commit()
-            print("✅ Withdrawal successful!")
+            print("Withdrawal successful")
         else:
-            print("❌ Insufficient balance")
+            print("Insufficient balance")
 
     except Exception as e:
-        print("❌ Error:", e)
+        print("Error:", e)
 
 
-# ---------------- TRANSACTION HISTORY ----------------
+# TRANSACTION HISTORY
 def transaction_history():
     acc_id = login()
     if not acc_id:
@@ -150,32 +148,31 @@ def transaction_history():
     cur.execute("SELECT type, amount FROM transactions WHERE acc_id=?", (acc_id,))
     data = cur.fetchall()
 
-    print("\n--- Transaction History ---")
+    print("\nTransaction History:")
     for row in data:
         print(row)
 
 
-# ---------------- DELETE ACCOUNT ----------------
+# DELETE ACCOUNT
 def delete_account():
     acc_id = login()
     if not acc_id:
         return
 
-    confirm = input("Are you sure you want to delete? (yes/no): ").strip()
+    confirm = input("Are you sure? (yes/no): ").strip()
 
     if confirm.lower() == "yes":
         cur.execute("DELETE FROM accounts WHERE id=?", (acc_id,))
         conn.commit()
-        print("✅ Account deleted")
+        print("Account deleted")
     else:
         print("Cancelled")
 
 
-# ---------------- MAIN MENU ----------------
+# MAIN MENU
 def main():
     while True:
         print("""
-========= BANK MENU =========
 1. Create Account
 2. View Accounts
 3. Deposit
@@ -200,13 +197,12 @@ def main():
         elif choice == "6":
             delete_account()
         elif choice == "7":
-            print("Thank you for using the system!")
+            print("Thank you")
             break
         else:
             print("Invalid choice")
 
 
-# ---------------- RUN ----------------
 if __name__ == "__main__":
     main()
     conn.close()
